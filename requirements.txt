@@ -3,4 +3,8 @@ tensorflow-cpu==2.13.0
 numpy==1.24.0
 opencv-python==4.8.0
 Pillow==10.0.0
+<<<<<<< HEAD
 gunicorn==20.1.0
+=======
+gunicorn==20.1.0
+>>>>>>> 60240c3be8273f94f1cc20672bfb0ac0f13ef018
