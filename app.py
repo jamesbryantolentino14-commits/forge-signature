@@ -43,6 +43,9 @@ def is_signature_like(image):
 # ==============================
 # Routes
 # ==============================
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 @app.route("/predict", methods=["POST"])
 def predict():
