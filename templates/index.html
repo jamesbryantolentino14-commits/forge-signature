@@ -1,38 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Signature Detection</title>
-    <style>
-        body { text-align:center; font-family:sans-serif; }
-        video { border: 2px solid black; }
-        button { margin-top: 10px; padding:10px 20px; font-size:16px; }
-    </style>
+    <meta charset="UTF-8">
+    <title>Forge Signature Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Signature Forgery Detection</h1>
-    <video id="video" width="640" height="480" autoplay></video>
+    <h1>Forge Signature Detection</h1>
+    <img src="{{ url_for('video_feed') }}" id="video">
     <br>
-    <button onclick="capture()">Capture Signature</button>
-    <h2 id="result"></h2>
+    <button id="capture">Capture & Detect</button>
+    <p id="result"></p>
 
     <script>
-        const video = document.getElementById('video');
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => video.srcObject = stream);
+        const captureBtn = document.getElementById('capture');
+        const resultText = document.getElementById('result');
 
-        function capture() {
+        captureBtn.addEventListener('click', async () => {
+            const video = document.getElementById('video');
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            canvas.toBlob(async (blob) => {
-                const formData = new FormData();
-                formData.append('image', blob, 'capture.jpg');
-                const response = await fetch('/predict', { method: 'POST', body: formData });
-                const data = await response.json();
-                document.getElementById('result').innerText = "Result: " + data.result;
-            }, 'image/jpeg');
-        }
+            canvas.width = video.width;
+            canvas.height = video.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+
+            const formData = new FormData();
+            formData.append('image', blob, 'capture.jpg');
+
+            const response = await fetch('/predict', { method: 'POST', body: formData });
+            const data = await response.json();
+            resultText.innerText = 'Prediction: ' + data.result;
+        });
     </script>
 </body>
 </html>
