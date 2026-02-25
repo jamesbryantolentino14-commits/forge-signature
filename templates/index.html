@@ -23,7 +23,7 @@ const video = document.getElementById('video');
 const captureButton = document.getElementById('capture');
 const resultDiv = document.getElementById('result');
 
-// Open BACK camera
+// Start camera (back camera preferred)
 navigator.mediaDevices.getUserMedia({
     video: { facingMode: "environment" }
 })
@@ -31,39 +31,52 @@ navigator.mediaDevices.getUserMedia({
     video.srcObject = stream;
 })
 .catch(() => {
-    // fallback if no back camera
     navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
         video.srcObject = stream;
     });
 });
 
-// Capture image and send to Flask
-captureButton.addEventListener("click", () => {
+captureButton.addEventListener("click", async () => {
 
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    try {
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0);
+        captureButton.disabled = true;   // prevent double click
+        resultDiv.innerText = "Processing...";
+        resultDiv.className = "result";
 
-    canvas.toBlob(blob => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0);
+
+        const blob = await new Promise(resolve =>
+            canvas.toBlob(resolve, "image/jpeg")
+        );
 
         const formData = new FormData();
         formData.append("image", blob, "capture.jpg");
 
-        fetch("/predict", {
+        const response = await fetch("/predict", {
             method: "POST",
             body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            resultDiv.innerText = data.result;
-            resultDiv.className = "result " + data.status;
         });
 
-    }, "image/jpeg");
+        const data = await response.json();
+
+        resultDiv.innerText = data.result;
+        resultDiv.className = "result " + data.status;
+
+    } catch (error) {
+        console.error(error);
+        resultDiv.innerText = "Error detecting signature";
+        resultDiv.className = "result unreliable";
+    }
+
+    captureButton.disabled = false;  // re-enable button
+
 });
 </script>
 
