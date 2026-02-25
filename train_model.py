@@ -1,4 +1,3 @@
-# train_model.py
 import os
 import cv2
 import numpy as np
@@ -13,7 +12,10 @@ def load_images(folder):
         for file in os.listdir(path):
             img_path = os.path.join(path, file)
             img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            if img is None:
+                continue
             img = cv2.resize(img, (128, 64))
+            img = img / 255.0  # Normalize
             X.append(img.flatten())
             y.append(label)
     return np.array(X), np.array(y)
