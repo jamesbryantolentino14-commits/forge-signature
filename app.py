@@ -8,9 +8,9 @@ from utils import preprocess_image
 app = Flask(__name__)
 
 # Load model
-with open('model/signature_model.pkl', 'rb') as f:
-    model = pickle.load(f)
+from tensorflow.keras.models import load_model
 
+model = load_model('model/signature_model_v2.h5')
 # Camera setup
 camera = cv2.VideoCapture(0)
 
