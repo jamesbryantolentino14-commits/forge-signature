@@ -1,9 +1,9 @@
-from flask import Flask, render_template, Response, request, jsonify
+from flask import Flask, render_template, request, jsonify
 import cv2
 import numpy as np
 import pickle
 import os
-from utils import preprocess_image
+from utils import preprocess_image, is_signature_like
 
 app = Flask(__name__)
 
@@ -15,25 +15,6 @@ model_path = os.path.join("model", "signature_model.pkl")
 with open(model_path, "rb") as f:
     model = pickle.load(f)
 
-# ==============================
-# Camera Setup (Local Only)
-# ==============================
-camera = cv2.VideoCapture(0)
-
-
-def gen_frames():
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            ret, buffer = cv2.imencode(".jpg", frame)
-            frame = buffer.tobytes()
-            yield (
-                b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
-            )
-
 
 # ==============================
 # Signature Validation Function
@@ -43,17 +24,16 @@ def is_signature_like(image):
     Prevent faces or random photos from being detected as genuine.
     """
 
-    # Mean brightness
     mean_intensity = np.mean(image)
 
-    # Edge detection
     edges = cv2.Canny(image, 50, 150)
     edge_density = np.sum(edges) / (image.shape[0] * image.shape[1])
 
-    # If too dark or too complex → unreliable
+    # Too dark
     if mean_intensity < 40:
         return False
 
+    # Too complex (like face or object)
     if edge_density > 40:
         return False
 
@@ -69,22 +49,26 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/video_feed")
-def video_feed():
-    return Response(
-        gen_frames(),
-        mimetype="multipart/x-mixed-replace; boundary=frame"
-    )
-
-
 @app.route("/predict", methods=["POST"])
 def predict():
+    if "image" not in request.files:
+        return jsonify({
+            "result": "No image received",
+            "status": "unreliable"
+        })
+
     file = request.files["image"]
     data = file.read()
     npimg = np.frombuffer(data, np.uint8)
     img = cv2.imdecode(npimg, cv2.IMREAD_GRAYSCALE)
 
-    # Validate image first
+    if img is None:
+        return jsonify({
+            "result": "Invalid image",
+            "status": "unreliable"
+        })
+
+    # Validate first
     if not is_signature_like(img):
         return jsonify({
             "result": "Unreliable Image (Not a Signature)",
@@ -94,7 +78,7 @@ def predict():
     # Preprocess
     img = preprocess_image(img)
 
-    # Prediction
+    # Predict
     pred = model.predict([img.flatten()])[0]
 
     if pred == 0:

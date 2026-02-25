@@ -8,35 +8,64 @@
 <body>
     <div class="container">
         <h1>Forge Signature Detection</h1>
-        
+
         <div class="video-container">
-            <video id="video" width="640" height="480" autoplay></video>
+            <video id="video" width="640" height="480" autoplay playsinline></video>
         </div>
 
         <button id="capture">Capture & Detect</button>
 
-        <p id="result">Prediction will appear here</p>
+        <div id="result" class="result"></div>
     </div>
 
-    <script>
+<script>
 const video = document.getElementById('video');
+const captureButton = document.getElementById('capture');
+const resultDiv = document.getElementById('result');
 
+// Open BACK camera
 navigator.mediaDevices.getUserMedia({
-    video: {
-        facingMode: { exact: "environment" }  // BACK CAMERA
-    }
+    video: { facingMode: "environment" }
 })
 .then(stream => {
     video.srcObject = stream;
 })
-.catch(error => {
-    console.log("Back camera not available, switching to default.");
+.catch(() => {
+    // fallback if no back camera
     navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
         video.srcObject = stream;
     });
 });
+
+// Capture image and send to Flask
+captureButton.addEventListener("click", () => {
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(blob => {
+
+        const formData = new FormData();
+        formData.append("image", blob, "capture.jpg");
+
+        fetch("/predict", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            resultDiv.innerText = data.result;
+            resultDiv.className = "result " + data.status;
+        });
+
+    }, "image/jpeg");
+});
 </script>
+
 </body>
 </html>
-

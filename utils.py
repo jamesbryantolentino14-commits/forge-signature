@@ -1,24 +1,30 @@
 import cv2
 import numpy as np
 
-def is_signature_like(image):
-    """
-    Simple validation:
-    Signature should have white background and thin dark strokes.
-    If too dark or too complex (like a face), mark as unreliable.
-    """
+# ==============================
+# Preprocess Image for Model
+# ==============================
+def preprocess_image(img):
+    img = cv2.resize(img, (100, 100))
+    img = img / 255.0
+    return img
 
-    # Check brightness
+
+# ==============================
+# Check if Image Looks Like Signature
+# ==============================
+def is_signature_like(image):
     mean_intensity = np.mean(image)
 
-    # Check edge density
     edges = cv2.Canny(image, 50, 150)
     edge_density = np.sum(edges) / (image.shape[0] * image.shape[1])
 
-    # Conditions for unreliable image
-    if mean_intensity < 50:      # too dark
+    # Too dark
+    if mean_intensity < 40:
         return False
-    if edge_density > 40:       # too complex (like face)
+
+    # Too complex (face/object)
+    if edge_density > 40:
         return False
 
     return True
