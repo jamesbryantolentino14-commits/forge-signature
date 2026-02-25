@@ -6,13 +6,14 @@ def preprocess_image(img):
     img = img / 255.0
     return img
 
-def is_signature_like(img):
-    mean_intensity = np.mean(img)
-    edges = cv2.Canny(img, 50, 150)
-    edge_density = np.sum(edges) / (img.shape[0] * img.shape[1])
+def is_signature_like(image):
+    mean_intensity = np.mean(image)
+    edges = cv2.Canny(image, 50, 150)
+    edge_density = np.sum(edges) / (image.shape[0] * image.shape[1])
 
-    if mean_intensity < 80:    # too dark
+    if mean_intensity < 40:  # too dark
         return False
-    if edge_density > 0.15:      # too complex
+    if edge_density > 40:    # too complex (like a face)
         return False
+
     return True
