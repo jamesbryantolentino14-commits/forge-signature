@@ -1,5 +1,6 @@
 flask
+numpy
 opencv-python-headless
 scikit-learn
-numpy
+tensorflow
 gunicorn
