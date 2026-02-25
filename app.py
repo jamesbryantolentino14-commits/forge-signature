@@ -42,8 +42,6 @@ def predict():
     pred = model.predict([img.flatten()])[0]
     return jsonify({'result': 'Genuine' if pred == 0 else 'Forged'})
 
-if __name__ == "__main__":
-    app.run(debug=True)
     
 
 if __name__ == "__main__":
