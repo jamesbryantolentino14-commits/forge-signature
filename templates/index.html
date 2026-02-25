@@ -1,26 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Signature Verification</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Signature Detection</title>
+    <style>
+        body { text-align:center; font-family:sans-serif; }
+        video { border: 2px solid black; }
+        button { margin-top: 10px; padding:10px 20px; font-size:16px; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>AI Signature Verification System</h1>
-        <p>Upload a signature image to check if it is Genuine or Forged.</p>
+    <h1>Signature Forgery Detection</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <br>
+    <button onclick="capture()">Capture Signature</button>
+    <h2 id="result"></h2>
 
-        <form action="/" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" accept="image/*" required>
-            <button type="submit">Analyze Signature</button>
-        </form>
+    <script>
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => video.srcObject = stream);
 
-        {% if result %}
-        <div class="result {{ 'forged' if result == 'Forged Signature' else 'genuine' }}">
-            <h2>Result: {{ result }}</h2>
-        </div>
-        {% endif %}
-    </div>
+        function capture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('image', blob, 'capture.jpg');
+                const response = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await response.json();
+                document.getElementById('result').innerText = "Result: " + data.result;
+            }, 'image/jpeg');
+        }
+    </script>
 </body>
 </html>
