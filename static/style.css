@@ -53,3 +53,26 @@ button:hover {
     font-weight: bold;
     color: #333;
 }
+
+.result {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.genuine {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.forged {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.unreliable {
+    background-color: #fff3cd;
+    color: #856404;
+}
