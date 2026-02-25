@@ -23,47 +23,30 @@ const video = document.getElementById('video');
 const captureButton = document.getElementById('capture');
 const resultDiv = document.getElementById('result');
 
-// Start camera (back camera preferred)
-navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "environment" }
-})
-.then(stream => {
-    video.srcObject = stream;
-})
-.catch(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-        video.srcObject = stream;
-    });
-});
+// Start camera
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+.then(stream => { video.srcObject = stream; })
+.catch(() => { navigator.mediaDevices.getUserMedia({ video: true }).then(stream => video.srcObject = stream); });
 
 captureButton.addEventListener("click", async () => {
-
     try {
-
-        captureButton.disabled = true;   // prevent double click
+        captureButton.disabled = true;
         resultDiv.innerText = "Processing...";
         resultDiv.className = "result";
 
         const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        canvas.width = 100;   // resize to 100x100 to match model
+        canvas.height = 100;
 
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0);
+        ctx.drawImage(video, 0, 0, 100, 100);
 
-        const blob = await new Promise(resolve =>
-            canvas.toBlob(resolve, "image/jpeg")
-        );
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg"));
 
         const formData = new FormData();
         formData.append("image", blob, "capture.jpg");
 
-        const response = await fetch("/predict", {
-            method: "POST",
-            body: formData
-        });
-
+        const response = await fetch("/predict", { method: "POST", body: formData });
         const data = await response.json();
 
         resultDiv.innerText = data.result;
@@ -74,9 +57,7 @@ captureButton.addEventListener("click", async () => {
         resultDiv.innerText = "Error detecting signature";
         resultDiv.className = "result unreliable";
     }
-
-    captureButton.disabled = false;  // re-enable button
-
+    captureButton.disabled = false;
 });
 </script>
 

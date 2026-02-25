@@ -44,18 +44,10 @@ def is_signature_like(image):
 # Routes
 # ==============================
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
 @app.route("/predict", methods=["POST"])
 def predict():
     if "image" not in request.files:
-        return jsonify({
-            "result": "No image received",
-            "status": "unreliable"
-        })
+        return jsonify({"result": "No image received", "status": "unreliable"})
 
     file = request.files["image"]
     data = file.read()
@@ -63,34 +55,24 @@ def predict():
     img = cv2.imdecode(npimg, cv2.IMREAD_GRAYSCALE)
 
     if img is None:
-        return jsonify({
-            "result": "Invalid image",
-            "status": "unreliable"
-        })
+        return jsonify({"result": "Invalid image", "status": "unreliable"})
 
-    # Validate first
+    from utils import preprocess_image, is_signature_like
+
+    # Check if looks like a signature
     if not is_signature_like(img):
-        return jsonify({
-            "result": "Unreliable Image (Not a Signature)",
-            "status": "unreliable"
-        })
+        return jsonify({"result": "Unreliable Image (Not a Signature)", "status": "unreliable"})
 
-    # Preprocess
+    # Preprocess for model
     img = preprocess_image(img)
 
     # Predict
     pred = model.predict([img.flatten()])[0]
 
     if pred == 0:
-        return jsonify({
-            "result": "Genuine Signature",
-            "status": "genuine"
-        })
+        return jsonify({"result": "Genuine Signature", "status": "genuine"})
     else:
-        return jsonify({
-            "result": "Forged Signature",
-            "status": "forged"
-        })
+        return jsonify({"result": "Forged Signature", "status": "forged"})
 
 
 # ==============================
