@@ -1,57 +1,55 @@
+/* style.css */
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f2f5;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    margin: 0;
 }
 
 .container {
-    background: #fff;
-    padding: 30px 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     text-align: center;
-    width: 350px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
 }
 
 h1 {
-    margin-bottom: 15px;
     color: #333;
+    margin-bottom: 20px;
 }
 
-form input[type="file"] {
-    margin: 15px 0;
+.video-container {
+    margin-bottom: 20px;
 }
 
-form button {
-    background: #007bff;
-    color: white;
+video {
+    border: 2px solid #333;
+    border-radius: 10px;
+}
+
+button {
+    padding: 12px 25px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
     border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: 0.3s;
 }
 
-form button:hover {
-    background: #0056b3;
+button:hover {
+    background-color: #0056b3;
 }
 
-.result {
-    margin-top: 20px;
+#result {
+    margin-top: 15px;
     font-size: 18px;
-    padding: 10px;
-    border-radius: 6px;
-}
-
-.result.forged {
-    color: #a94442;
-    background: #f2dede;
-}
-
-.result.genuine {
-    color: #3c763d;
-    background: #dff0d8;
+    font-weight: bold;
+    color: #333;
 }

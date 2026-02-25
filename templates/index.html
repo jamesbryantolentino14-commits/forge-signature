@@ -6,31 +6,55 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Forge Signature Detection</h1>
-    <img src="{{ url_for('video_feed') }}" id="video">
-    <br>
-    <button id="capture">Capture & Detect</button>
-    <p id="result"></p>
+    <div class="container">
+        <h1>Forge Signature Detection</h1>
+        
+        <div class="video-container">
+            <video id="video" width="640" height="480" autoplay></video>
+        </div>
+
+        <button id="capture">Capture & Detect</button>
+
+        <p id="result">Prediction will appear here</p>
+    </div>
 
     <script>
+        // Access the camera
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => console.error("Error accessing camera: ", err));
+
         const captureBtn = document.getElementById('capture');
         const resultText = document.getElementById('result');
 
         captureBtn.addEventListener('click', async () => {
-            const video = document.getElementById('video');
+            // Create a canvas to capture the video frame
             const canvas = document.createElement('canvas');
-            canvas.width = video.width;
-            canvas.height = video.height;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert to blob
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
 
+            // Send to Flask server
             const formData = new FormData();
             formData.append('image', blob, 'capture.jpg');
 
-            const response = await fetch('/predict', { method: 'POST', body: formData });
-            const data = await response.json();
-            resultText.innerText = 'Prediction: ' + data.result;
+            resultText.innerText = "Detecting...";
+
+            try {
+                const response = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await response.json();
+                resultText.innerText = 'Prediction: ' + data.result;
+            } catch (err) {
+                console.error(err);
+                resultText.innerText = "Error detecting signature.";
+            }
         });
     </script>
 </body>
